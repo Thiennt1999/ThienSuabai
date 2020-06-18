@@ -1,4 +1,5 @@
-﻿using BigSchool__lab456.Models;
+﻿using BigSchool__lab456.DTOs;
+using BigSchool__lab456.Models;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -22,10 +23,31 @@ namespace BigSchool__lab456.Controllers
         [HttpPost]
         public IHttpActionResult Attend([FromBody] int courseId)
         {
+            var userId = User.Identity.GetUserId();
+            if (_dbContext.Attendances.Any(a => a.AttendeeId == userId && a.CourseId == courseId))
+                return BadRequest("The Attendance already exists !");
             var attendance = new Attendance
             {
                 CourseId = courseId,
-                AttendeeId = User.Identity.GetUserId()
+                AttendeeId = userId
+            };
+
+            _dbContext.Attendances.Add(attendance);
+            _dbContext.SaveChanges();
+
+            return Ok();
+        }
+        [HttpPost]
+        public IHttpActionResult Attend(AttendanceDto attendanceDto)
+        {
+            var userId = User.Identity.GetUserId();
+            if (_dbContext.Attendances.Any(a => a.AttendeeId == userId && a.CourseId == attendanceDto.CourseId))
+                return BadRequest("The Attendance already exists");
+
+            var attendance = new Attendance
+            {
+                CourseId = attendanceDto.CourseId,
+                AttendeeId = userId
             };
 
             _dbContext.Attendances.Add(attendance);
@@ -35,3 +57,4 @@ namespace BigSchool__lab456.Controllers
         }
     }
 }
+
